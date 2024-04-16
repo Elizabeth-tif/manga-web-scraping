@@ -14,5 +14,7 @@ class MangaSpider(scrapy.Spider):
         yield {
             'rank': response.css('span.numbers.ranked strong::text').get()[1:],
             'title': response.css('span[itemprop="name"]::text').get(),
-            'image': response.css('img::attr(data-src)').get()
+            'image': response.css('img::attr(data-src)').get(),
+            'members': response.css('span.numbers.members strong::text').get(),
+            'score': response.css('div.score-label::text').get()
         }
