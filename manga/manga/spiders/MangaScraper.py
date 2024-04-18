@@ -19,6 +19,7 @@ class MangaSpider(scrapy.Spider):
             'score': response.css('div.score-label::text').get(),
             'sinopsis' : response.css('span[itemprop="description"]::text').get(),
             'type': self.get_manga_type(response),
+            'genre': response.css('span[itemprop="genre"]::text').getall(),
         }
 
     def get_manga_type(self, response):
