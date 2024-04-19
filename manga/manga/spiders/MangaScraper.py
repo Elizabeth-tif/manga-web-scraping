@@ -11,6 +11,7 @@ class MangaSpider(scrapy.Spider):
             yield scrapy.Request(url=manga_page, callback=self.parse_manga_details)
     
     def parse_manga_details(self, response):
+        publishedHolder = response.css('div.spaceit_pad::text').getall()
         yield {
             'rank': response.css('span.numbers.ranked strong::text').get()[1:],
             'title': response.css('span[itemprop="name"]::text').get(),
@@ -21,6 +22,7 @@ class MangaSpider(scrapy.Spider):
             'type': self.get_manga_type(response),
             'genre': response.css('span[itemprop="genre"]::text').getall(),
             'authors': self.get_authors(response),
+            'published': publishedHolder[publishedHolder.index(" Publishing")+1][1:],
         }
 
     def get_manga_type(self, response):
