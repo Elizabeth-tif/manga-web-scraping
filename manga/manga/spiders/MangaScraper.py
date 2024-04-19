@@ -23,6 +23,9 @@ class MangaSpider(scrapy.Spider):
             'genre': response.css('span[itemprop="genre"]::text').getall(),
             'authors': self.get_authors(response),
             'published': publishedHolder[publishedHolder.index(" Publishing")+1][1:],
+            'characters-image': response.css('a.fw-n img::attr(data-src)').getall(),
+            'characters-name': response.css('div.left-column.fl-l.divider tr td.borderClass a::text')[2::3].getall() + response.css('div.left-right.fl-r tr td.borderClass a::text')[2::3].getall(),
+            'characters-role': response.css('div.left-column.fl-l.divider tr td.borderClass div.spaceit_pad small::text').getall() + response.css('div.left-right.fl-r tr td.borderClass div.spaceit_pad small::text').getall(),
         }
 
     def get_manga_type(self, response):
