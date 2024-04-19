@@ -20,6 +20,7 @@ class MangaSpider(scrapy.Spider):
             'sinopsis' : response.css('span[itemprop="description"]::text').get(),
             'type': self.get_manga_type(response),
             'genre': response.css('span[itemprop="genre"]::text').getall(),
+            'authors': self.get_authors(response),
         }
 
     def get_manga_type(self, response):
@@ -34,3 +35,21 @@ class MangaSpider(scrapy.Spider):
                 return manga_type
 
         return None  # Return None apabila type tidak ditemukan/tidak diekstrak
+    
+    def get_authors(self, response):
+        authors = []
+        authors_span = response.xpath('//span[@class="dark_text" and contains(text(), "Authors:")]')
+        if authors_span:
+            authors_info = authors_span.xpath('./following-sibling::a')
+            for author in authors_info:
+                author_name = author.xpath('string()').get()
+                role = author.xpath('following-sibling::text()').get().strip()
+
+                role = role.replace('(', '').replace(')', '').replace(',', '')
+
+                authors.append({
+                    'name': author_name,
+                    'role': role
+                })
+            return authors
+        return None
