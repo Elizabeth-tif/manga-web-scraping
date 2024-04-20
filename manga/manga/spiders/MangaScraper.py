@@ -12,6 +12,9 @@ class MangaSpider(scrapy.Spider):
     
     def parse_manga_details(self, response):
         publishedHolder = response.css('div.spaceit_pad::text').getall()
+        charImage = response.css('a.fw-n img::attr(data-src)').getall()
+        charName = response.css('div.left-column.fl-l.divider tr td.borderClass a::text')[2::3].getall() + response.css('div.left-right.fl-r tr td.borderClass a::text')[2::3].getall()
+        charRole = response.css('div.left-column.fl-l.divider tr td.borderClass div.spaceit_pad small::text').getall() + response.css('div.left-right.fl-r tr td.borderClass div.spaceit_pad small::text').getall()
         yield {
             'rank': response.css('span.numbers.ranked strong::text').get()[1:],
             'title': response.css('span[itemprop="name"]::text').get(),
@@ -22,10 +25,9 @@ class MangaSpider(scrapy.Spider):
             'type': self.get_manga_type(response),
             'genre': response.css('span[itemprop="genre"]::text').getall(),
             'authors': self.get_authors(response),
-            'published': publishedHolder[publishedHolder.index(" Publishing")+1][1:],
-            'characters-image': response.css('a.fw-n img::attr(data-src)').getall(),
-            'characters-name': response.css('div.left-column.fl-l.divider tr td.borderClass a::text')[2::3].getall() + response.css('div.left-right.fl-r tr td.borderClass a::text')[2::3].getall(),
-            'characters-role': response.css('div.left-column.fl-l.divider tr td.borderClass div.spaceit_pad small::text').getall() + response.css('div.left-right.fl-r tr td.borderClass div.spaceit_pad small::text').getall(),
+            'status': publishedHolder[publishedHolder.index("\n                    ")-2][1:],
+            'published': publishedHolder[publishedHolder.index("\n                    ")-1][1:],
+            'characters':{'name':charName,'role':charRole,'image':charImage},
         }
 
     def get_manga_type(self, response):
