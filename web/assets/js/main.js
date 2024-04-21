@@ -270,67 +270,6 @@
     })
 
   /**
-   * Initiate Datatables
-   */
-  let datatable = $('#datatable').DataTable({
-    ajax: { url: "../../../manga/hasil.json", dataSrc: "" },
-    scrollX: true,
-    columns: [
-      { 
-        data: "rank",
-      },
-      {
-        data: "image",
-        render: function (data) {
-          return '<img src="' + data + '" alt="Image" style="max-width: 100px; border-radius: 10px;">';
-        },
-      },
-      { 
-        data: "title",
-        // width: '40%'
-      },
-      { data: "type" },
-      { data: "score" },
-      { data: "genre" },
-      { data: "members" },
-      { data: "authors",
-        render: function (data) {
-          let result = '';
-          data.forEach(author => {
-            const { name, role } = author;
-            result += `${name} (${role})\n`;
-          });
-          return result;
-        }
-      },
-      {
-        data: "sinopsis",
-        render: function (data) {
-          return '<textarea class="form-control" style="width: 300px;" rows="4" readonly>' + data + '</textarea>'
-        }
-      }
-    ],
-  })
-  // datatables.forEach(datatable => {
-  //   new simpleDatatables.DataTable(datatable, {
-  //     ajax: { url: "../../hasil.json", dataSrc: "" },
-  //     perPageSelect: [5, 10, 15, ["All", -1]],
-  //     columns: [
-	// 			{ data: "rank" },
-	// 			{
-	// 				data: "image",
-	// 				render: function (data, type, row) {
-	// 					return '<img src="' + data + '" alt="Image">';
-	// 				},
-	// 			},
-	// 			{ data: "title" },
-  //       { data: "type"},
-  //       { data: "score"},
-	// 		],
-  //   });
-  // })
-
-  /**
    * Autoresize echart charts
    */
   const mainContainer = select('#main');
@@ -389,7 +328,7 @@ function logging(genre,genreVolume){
 }
 
 function getGenre(){
-  fetch('../../manga/manga/spiders/hasil.json')
+  fetch("../../../manga/hasil.json")
   .then((res)=>{
     if (!res){
       throw new Error
@@ -422,19 +361,88 @@ function getGenre(){
 }
 getGenre()
 
+//a function to filter the data based on the genre selected
+function filter() {
+  var genre = document.getElementById('genre-selector').value;
 
+  if ($.fn.DataTable.isDataTable('#datatable')) {
+    $('#datatable').DataTable().destroy();
+  }
+  datatable = $('#datatable').DataTable({
+    ajax: { url: "../../../manga/hasil.json", dataSrc: "" },
+    scrollX: true,
+    columns: [
+      { 
+        data: "rank",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      {
+        data: "image",
+        render: function (data) {
+          return '<img src="' + data + '" alt="Image" style="max-width: 100px; border-radius: 10px;">';
+        },
+        orderable: false
+      },
+      { 
+        data: "title",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      { 
+        data: "type",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      { 
+        data: "score",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      { 
+        data: "genre",
+        orderable: false
+      },
+      { 
+        data: "members",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      { 
+        data: "authors",
+        render: function (data) {
+          let result = '';
+          data.forEach(author => {
+            const { name, role } = author;
+            result += `${name} (${role})\n`;
+          });
+          return result;
+        },
+        orderable: false
+      },
+      {
+        data: "sinopsis",
+        render: function (data) {
+          return '<textarea class="form-control" style="width: 300px;" rows="4" readonly>' + data + '</textarea>'
+        },
+        orderable: false
+      }
+    ],
+    initComplete: function(settings, json) {
+      var datatable = this.api();
+      var rank = 1
+      datatable.rows().every(function (rowIdx, tableLoop, rowLoop) {
+        var genres = datatable.cell(rowIdx, 5).data();
+        
+        if ((genre === "all_genre" || genres.includes(genre))) {
+          datatable.cell(rowIdx, 0).data(rank++);
+        } else {
+          datatable.row(rowIdx).remove();
+        }
+      });
+      datatable.draw();
+    }
+  })
+}
 
-// console.log(newArrOfDict)
-
-
-
-// let genre = ['comedy', 'horror', 'action'];
-// let genreVolume = [6, 12, 4];
-
-// let combinedArray = [];
-
-// for (let i = 0; i < genre.length; i++) {
-//     combinedArray.push({ genre: genre[i], volume: genreVolume[i] });
-// }
-
-// console.log(combinedArray);
+document.addEventListener('DOMContentLoaded', filter);
