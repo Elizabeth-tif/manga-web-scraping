@@ -270,30 +270,146 @@
     })
 
   /**
-   * Initiate Datatables
+   * Autoresize echart charts
    */
-  let datatable = $('#datatable').DataTable({
+  const mainContainer = select('#main');
+  if (mainContainer) {
+    setTimeout(() => {
+      new ResizeObserver(function() {
+        select('.echart', true).forEach(getEchart => {
+          echarts.getInstanceByDom(getEchart).resize();
+        })
+      }).observe(mainContainer);
+    }, 200);
+  }
+
+})();
+function changeChart(arrOfDict){
+  document.addEventListener("DOMContentLoaded", () => {
+    echarts.init(document.querySelector("#trafficChart")).setOption({
+      tooltip: {
+        trigger: 'item'
+      },
+      legend: {
+        top: '5%',
+        left: 'center'
+      },
+      series: [{
+        name: 'Access From',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        label: {
+          show: false,
+          position: 'center'
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: '18',
+            fontWeight: 'bold'
+          }
+        },
+        labelLine: {
+          show: false
+        },
+        data: arrOfDict
+      }]
+    });
+  });
+}
+
+let arrOfdictGenre = []
+let newArrOfDict = [{value:0,name:''}]
+
+function logging(genre,genreVolume){
+  console.log(genre)
+  console.log(genreVolume)
+}
+
+function getGenre(){
+  fetch('../../manga/manga/spiders/hasil.json')
+  .then((res)=>{
+    if (!res){
+      throw new Error
+      ('HTTP error! Status: ${res.status}')
+    }
+    return res.json()
+  })
+  .then((data)=>{
+    genre = []
+    genreVolume = []
+    
+    
+    for (i in data){
+      genre = Array.from(new Set([...genre, ...data[i]['genre']]))
+    }
+    for (i in genre){
+      genreVolume[i]=0
+      for (j in data){
+        if ((data[j]['genre']).includes(genre[i])){
+          genreVolume[i] = genreVolume[i] + 1
+        }
+      }
+      arrOfdictGenre.push({value: genreVolume[i], name: genre[i]})
+    }
+    console.log(newArrOfDict)
+    logging(genre,genreVolume)
+  })
+  .catch((error)=>
+  console.error("Unable to fetch data:",error))
+}
+getGenre()
+
+//a function to filter the data based on the genre selected
+function filter() {
+  var genre = document.getElementById('genre-selector').value;
+
+  if ($.fn.DataTable.isDataTable('#datatable')) {
+    $('#datatable').DataTable().destroy();
+  }
+  datatable = $('#datatable').DataTable({
     ajax: { url: "../../../manga/hasil.json", dataSrc: "" },
     scrollX: true,
     columns: [
       { 
         data: "rank",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
       },
       {
         data: "image",
         render: function (data) {
           return '<img src="' + data + '" alt="Image" style="max-width: 100px; border-radius: 10px;">';
         },
+        orderable: false
       },
       { 
         data: "title",
-        // width: '40%'
+        orderable: true,
+        orderSequence: ["asc", "desc"]
       },
-      { data: "type" },
-      { data: "score" },
-      { data: "genre" },
-      { data: "members" },
-      { data: "authors",
+      { 
+        data: "type",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      { 
+        data: "score",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      { 
+        data: "genre",
+        orderable: false
+      },
+      { 
+        data: "members",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      { 
+        data: "authors",
         render: function (data) {
           let result = '';
           data.forEach(author => {
@@ -301,7 +417,8 @@
             result += `${name} (${role})\n`;
           });
           return result;
-        }
+        },
+        orderable: false
       },
       {
         data: "sinopsis",
@@ -345,6 +462,92 @@
   }
 
 })();
+
+//a function to filter the data based on the genre selected
+function filter() {
+  var genre = document.getElementById('genre-selector').value;
+
+  if ($.fn.DataTable.isDataTable('#datatable')) {
+    $('#datatable').DataTable().destroy();
+  }
+  datatable = $('#datatable').DataTable({
+    ajax: { url: "../../../manga/hasil.json", dataSrc: "" },
+    scrollX: true,
+    columns: [
+      { 
+        data: "rank",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      {
+        data: "image",
+        render: function (data) {
+          return '<img src="' + data + '" alt="Image" style="max-width: 100px; border-radius: 10px;">';
+        },
+        orderable: false
+      },
+      { 
+        data: "title",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      { 
+        data: "type",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      { 
+        data: "score",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      { 
+        data: "genre",
+        orderable: false
+      },
+      { 
+        data: "members",
+        orderable: true,
+        orderSequence: ["asc", "desc"]
+      },
+      { 
+        data: "authors",
+        render: function (data) {
+          let result = '';
+          data.forEach(author => {
+            const { name, role } = author;
+            result += `${name} (${role})\n`;
+          });
+          return result;
+        },
+        orderable: false
+      },
+      {
+        data: "sinopsis",
+        render: function (data) {
+          return '<textarea class="form-control" style="width: 300px;" rows="4" readonly>' + data + '</textarea>'
+        },
+        orderable: false
+      }
+    ],
+    initComplete: function(settings, json) {
+      var datatable = this.api();
+      var rank = 1
+      datatable.rows().every(function (rowIdx, tableLoop, rowLoop) {
+        var genres = datatable.cell(rowIdx, 5).data();
+        
+        if ((genre === "all_genre" || genres.includes(genre))) {
+          datatable.cell(rowIdx, 0).data(rank++);
+        } else {
+          datatable.row(rowIdx).remove();
+        }
+      });
+      datatable.draw();
+    }
+  })
+}
+
+document.addEventListener('DOMContentLoaded', filter);
 function changeChart(arrOfDict){
   document.addEventListener("DOMContentLoaded", () => {
     echarts.init(document.querySelector("#trafficChart")).setOption({
