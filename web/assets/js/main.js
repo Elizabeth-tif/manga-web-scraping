@@ -129,46 +129,16 @@
 
 })();
 
-function changeChart(arrOfDict){
-  document.addEventListener("DOMContentLoaded", () => {
-    echarts.init(document.querySelector("#trafficChart")).setOption({
-      tooltip: {
-        trigger: 'item'
-      },
-      legend: {
-        top: '5%',
-        left: 'center'
-      },
-      series: [{
-        name: 'Access From',
-        type: 'pie',
-        radius: ['40%', '70%'],
-        avoidLabelOverlap: false,
-        label: {
-          show: false,
-          position: 'center'
-        },
-        emphasis: {
-          label: {
-            show: true,
-            fontSize: '18',
-            fontWeight: 'bold'
-          }
-        },
-        labelLine: {
-          show: false
-        },
-        data: arrOfDict
-      }]
-    });
-  });
-}
 
-let arrOfdictGenre = []
 
-function logging(genre,genreVolume){
-  console.log(genre)
-  console.log(genreVolume)
+
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
 }
 
 function getGenre(){
@@ -181,9 +151,8 @@ function getGenre(){
     return res.json()
   })
   .then((data)=>{
-    genre = []
-    genreVolume = []
-    
+    let genre = []
+    let genreVolume = []
     for (i in data){
       genre = Array.from(new Set([...genre, ...data[i]['genre']]))
     }
@@ -194,10 +163,29 @@ function getGenre(){
           genreVolume[i] = genreVolume[i] + 1
         }
       }
-      arrOfdictGenre.push({value: genreVolume[i], name: genre[i]})
     }
-    console.log(arrOfdictGenre)
-    logging(genre,genreVolume)
+    let combinedArray = genreVolume.map((value, index) => ({ amount: value, genres: genre[index] }));
+    combinedArray.sort((a, b) => b.amount - a.amount);
+    genre = combinedArray.map(obj => obj.genres)
+    genreVolume = combinedArray.map(obj => obj.amount)
+
+    var barColors = Array.from({length: genre.length}, () => getRandomColor());
+    myChart = new Chart("pieChart", {
+        type: "pie",            //jenis chart
+        data: {
+          labels: genre.slice(0,20),      //informasi per kategori
+          datasets: [{
+            backgroundColor: barColors, //warna tiap kategori
+            data: genreVolume.slice(0,20)               //jumlah pengeluaran tiap kategori
+          }]
+        },
+        options: {
+          title: {
+            display: true,
+            text: "Genre Distribution"
+          }
+        }
+    });
   })
   .catch((error)=>
   console.error("Unable to fetch data:",error))
