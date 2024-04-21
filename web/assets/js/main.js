@@ -345,3 +345,96 @@
   }
 
 })();
+function changeChart(arrOfDict){
+  document.addEventListener("DOMContentLoaded", () => {
+    echarts.init(document.querySelector("#trafficChart")).setOption({
+      tooltip: {
+        trigger: 'item'
+      },
+      legend: {
+        top: '5%',
+        left: 'center'
+      },
+      series: [{
+        name: 'Access From',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        label: {
+          show: false,
+          position: 'center'
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: '18',
+            fontWeight: 'bold'
+          }
+        },
+        labelLine: {
+          show: false
+        },
+        data: arrOfDict
+      }]
+    });
+  });
+}
+
+let arrOfdictGenre = []
+let newArrOfDict = [{value:0,name:''}]
+
+function logging(genre,genreVolume){
+  console.log(genre)
+  console.log(genreVolume)
+}
+
+function getGenre(){
+  fetch('../../manga/manga/spiders/hasil.json')
+  .then((res)=>{
+    if (!res){
+      throw new Error
+      ('HTTP error! Status: ${res.status}')
+    }
+    return res.json()
+  })
+  .then((data)=>{
+    genre = []
+    genreVolume = []
+    
+    
+    for (i in data){
+      genre = Array.from(new Set([...genre, ...data[i]['genre']]))
+    }
+    for (i in genre){
+      genreVolume[i]=0
+      for (j in data){
+        if ((data[j]['genre']).includes(genre[i])){
+          genreVolume[i] = genreVolume[i] + 1
+        }
+      }
+      arrOfdictGenre.push({value: genreVolume[i], name: genre[i]})
+    }
+    console.log(newArrOfDict)
+    logging(genre,genreVolume)
+  })
+  .catch((error)=>
+  console.error("Unable to fetch data:",error))
+}
+getGenre()
+
+
+
+// console.log(newArrOfDict)
+
+
+
+// let genre = ['comedy', 'horror', 'action'];
+// let genreVolume = [6, 12, 4];
+
+// let combinedArray = [];
+
+// for (let i = 0; i < genre.length; i++) {
+//     combinedArray.push({ genre: genre[i], volume: genreVolume[i] });
+// }
+
+// console.log(combinedArray);
