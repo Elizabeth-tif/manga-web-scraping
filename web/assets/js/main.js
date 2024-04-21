@@ -207,6 +207,7 @@ getGenre()
 //a function to filter the data based on the genre selected
 function filter() {
   var genre = document.getElementById('genre-selector').value;
+  var type = document.getElementById('type-selector').value;
 
   if ($.fn.DataTable.isDataTable('#datatable')) {
     $('#datatable').DataTable().destroy();
@@ -234,8 +235,7 @@ function filter() {
       },
       { 
         data: "type",
-        orderable: true,
-        orderSequence: ["asc", "desc"]
+        orderable: false
       },
       { 
         data: "score",
@@ -287,13 +287,15 @@ function filter() {
     ],
     initComplete: function(settings, json) {
       var datatable = this.api();
-      var rank = 1
+      var rank = 1;
       datatable.rows().every(function (rowIdx, tableLoop, rowLoop) {
         var genres = datatable.cell(rowIdx, 5).data();
-        
-        if ((genre === "all_genre" || genres.includes(genre))) {
+        var types = datatable.cell(rowIdx, 3).data();
+
+        if ((genre === "all_genre" || genres.includes(genre)) && (type === "all_type" || types === type)) {
           datatable.cell(rowIdx, 0).data(rank++);
-        } else {
+        }
+        else {
           datatable.row(rowIdx).remove();
         }
       });
