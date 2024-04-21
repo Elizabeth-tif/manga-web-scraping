@@ -172,8 +172,9 @@ function getType() {
       myChart = new Chart("bChart", {
         type: "bar", 
         data: {
-          labels: types.slice(0,10), 
+          labels: types.slice(0,10),
           datasets: [{
+              label: "Amount",
               backgroundColor: barColors, 
               data: typeVolume.slice(0,10) 
             }],
@@ -251,13 +252,13 @@ function scoreToStars(score) {
   // Generate the HTML for the stars
   var starsHtml = '';
   for (var i = 0; i < fullStars; i++) {
-      starsHtml += '<img src="assets/img/fullstar.png" style="width: 20px;height: 20px;">';
+      starsHtml += '<img src="web/assets/img/fullstar.png" style="width: 20px;height: 20px;">';
   }
   for (var i = 0; i < halfStars; i++) {
-      starsHtml += '<img src="assets/img/halfstar.png" style="width: 20px;height: 20px;">';
+      starsHtml += '<img src="web/assets/img/halfstar.png" style="width: 20px;height: 20px;">';
   }
   for (var i = 0; i < emptyStars; i++) {
-      starsHtml += '<img src="assets/img/emptystar.png" style="width: 20px;height: 20px;">';
+      starsHtml += '<img src="web/assets/img/emptystar.png" style="width: 20px;height: 20px;">';
   }
 
   return starsHtml;
@@ -274,6 +275,16 @@ function filter() {
   datatable = $('#datatable').DataTable({
     ajax: { url: "../../../manga/hasil.json", dataSrc: "" },
     scrollX: true,
+    columnDefs: [
+      {
+        targets: "_all",
+        className: "dt-head-left"
+      },
+      {
+        targets: [0, 1, 4, 5, 7, 11, 12],
+        className: "dt-body-center"
+      }
+    ],
     columns: [
       { 
         data: "rank",
@@ -285,6 +296,7 @@ function filter() {
         render: function (data) {
           return '<img src="' + data + '" alt="Image" style="max-width: 150px; border-radius: 10px;">';
         },
+        align: "dt-body-center",
         orderable: false
       },
       { 
