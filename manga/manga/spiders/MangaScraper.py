@@ -12,9 +12,16 @@ class MangaSpider(scrapy.Spider):
     
     def parse_manga_details(self, response):
         publishedHolder = response.css('div.spaceit_pad::text').getall()
+        characters = []
         charImage = response.css('a.fw-n img::attr(data-src)').getall()
         charName = response.css('div.left-column.fl-l.divider tr td.borderClass a::text')[2::3].getall() + response.css('div.left-right.fl-r tr td.borderClass a::text')[2::3].getall()
         charRole = response.css('div.left-column.fl-l.divider tr td.borderClass div.spaceit_pad small::text').getall() + response.css('div.left-right.fl-r tr td.borderClass div.spaceit_pad small::text').getall()
+        for i in range(len(charName)):
+            characters.append({
+                'name': charName[i],
+                'role': charRole[i],
+                'image': charImage[i]
+            })
         yield {
             'rank': response.css('span.numbers.ranked strong::text').get()[1:],
             'title': response.css('span[itemprop="name"]::text').get(),
@@ -27,7 +34,7 @@ class MangaSpider(scrapy.Spider):
             'authors': self.get_authors(response),
             'status': publishedHolder[publishedHolder.index("\n                    ")-2][1:],
             'published': publishedHolder[publishedHolder.index("\n                    ")-1][1:],
-            'characters':{'name':charName,'role':charRole,'image':charImage},
+            'characters': characters
         }
 
     def get_manga_type(self, response):
