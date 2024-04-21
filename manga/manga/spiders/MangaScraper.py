@@ -3,25 +3,36 @@ import scrapy
 class MangaSpider(scrapy.Spider):
     name = "manga-spider"
     start_urls = ["https://myanimelist.net/topmanga.php"]
+    page_number = 0
+    max_pages = 20
+
+    custom_settings = {
+        'DOWNLOAD_DELAY': 2,  
+        'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36',
+        'ROBOTSTXT_OBEY': True,
+        'HTTPERROR_ALLOWED_CODES': [405],  
+        'RETRY_HTTP_CODES': [500, 502, 503, 504, 522, 524, 408], 
+        'RETRY_TIMES': 3,
+    }
 
     def parse(self, response):
         for mangas in response.css('tr.ranking-list'):
             manga_page = mangas.css('a.hoverinfo_trigger.fl-l.ml12.mr8::attr(href)').get()
+            if manga_page:
+                yield scrapy.Request(url=response.urljoin(manga_page), callback=self.parse_manga_details)
+        
+        next_page = response.css('a.next::attr(href)').get()
+        if next_page and self.page_number < self.max_pages:
+            self.page_number += 1
+            next_url = f"https://myanimelist.net/topmanga.php?limit={self.page_number * 50}"
+            yield scrapy.Request(url=response.urljoin(next_url), callback=self.parse)
 
-            yield scrapy.Request(url=manga_page, callback=self.parse_manga_details)
-    
     def parse_manga_details(self, response):
         publishedHolder = response.css('div.spaceit_pad::text').getall()
-        characters = []
         charImage = response.css('a.fw-n img::attr(data-src)').getall()
         charName = response.css('div.left-column.fl-l.divider tr td.borderClass a::text')[2::3].getall() + response.css('div.left-right.fl-r tr td.borderClass a::text')[2::3].getall()
         charRole = response.css('div.left-column.fl-l.divider tr td.borderClass div.spaceit_pad small::text').getall() + response.css('div.left-right.fl-r tr td.borderClass div.spaceit_pad small::text').getall()
-        for i in range(len(charName)):
-            characters.append({
-                'name': charName[i],
-                'role': charRole[i],
-                'image': charImage[i]
-            })
+        
         yield {
             'rank': response.css('span.numbers.ranked strong::text').get()[1:],
             'title': response.css('span[itemprop="name"]::text').get(),
@@ -34,7 +45,7 @@ class MangaSpider(scrapy.Spider):
             'authors': self.get_authors(response),
             'status': publishedHolder[publishedHolder.index("\n                    ")-2][1:],
             'published': publishedHolder[publishedHolder.index("\n                    ")-1][1:],
-            'characters': characters
+            'characters': {'name': charName, 'role': charRole, 'image': charImage},
         }
 
     def get_manga_type(self, response):
