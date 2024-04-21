@@ -130,8 +130,6 @@
 })();
 
 
-
-
 function getRandomColor() {
   var letters = '0123456789ABCDEF';
   var color = '#';
@@ -140,6 +138,57 @@ function getRandomColor() {
   }
   return color;
 }
+
+function getType() {
+  fetch("../../../manga/hasil.json")
+    .then((res) => {
+      if (!res) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      let types = [];
+      let typeVolume = [];
+      for (i in data) {
+        types = Array.from(new Set([...types, data[i]["type"]]));
+      }
+      for (i in types) {
+        typeVolume[i] = 0;
+        for (j in data) {
+          if (data[j]["type"] === types[i]) {
+            typeVolume[i] = typeVolume[i] + 1;
+          }
+        }
+      }
+      let combinedArray = typeVolume.map((value, index) => ({ amount: value, types: types[index] }));
+      combinedArray.sort((a, b) => b.amount - a.amount);
+      types = combinedArray.map((obj) => obj.types);
+      typeVolume = combinedArray.map((obj) => obj.amount);
+      elements = types;
+      console.log(types);
+
+      var barColors = Array.from({ length: types.length }, () => getRandomColor());
+      myChart = new Chart("bChart", {
+        type: "bar", 
+        data: {
+          labels: types.slice(0,10), 
+          datasets: [{
+              backgroundColor: barColors, 
+              data: typeVolume.slice(0,10) 
+            }],
+        },
+        options: {
+          title: {
+            display: true,
+            text: "Type Distribution",
+          },
+        },
+      });
+    })
+    .catch((error) => console.error("Unable to fetch data:", error));            
+  }
+getType();
 
 function getGenre(){
   fetch("../../../manga/hasil.json")
