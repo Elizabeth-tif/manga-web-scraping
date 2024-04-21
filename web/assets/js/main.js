@@ -192,6 +192,28 @@ function getGenre(){
 }
 getGenre()
 
+//function to convert score to stars
+function scoreToStars(score) {
+  // Convert the score to a number of full and half stars
+  var fullStars = Math.floor(score / 2);
+  var halfStars = score % 2 === 0 ? 0 : 1;
+  var emptyStars = 5 - fullStars - halfStars;
+
+  // Generate the HTML for the stars
+  var starsHtml = '';
+  for (var i = 0; i < fullStars; i++) {
+      starsHtml += '<img src="assets/img/fullstar.png" style="width: 20px;height: 20px;">';
+  }
+  for (var i = 0; i < halfStars; i++) {
+      starsHtml += '<img src="assets/img/halfstar.png" style="width: 20px;height: 20px;">';
+  }
+  for (var i = 0; i < emptyStars; i++) {
+      starsHtml += '<img src="assets/img/emptystar.png" style="width: 20px;height: 20px;">';
+  }
+
+  return starsHtml;
+}
+
 //a function to filter the data based on the genre selected
 function filter() {
   var genre = document.getElementById('genre-selector').value;
@@ -228,7 +250,20 @@ function filter() {
       { 
         data: "score",
         orderable: true,
-        orderSequence: ["asc", "desc"]
+        orderSequence: ["asc", "desc"],
+      },
+      { 
+        data: "score",
+        orderable: true,
+        orderSequence: ["asc", "desc"],
+        width: "100px",
+        render: function(data, type, row) {
+            if (type === 'display') {
+                return scoreToStars(data);
+            } else {
+                return data;  // Return the raw score for sorting and filtering
+            }
+        }
       },
       { 
         data: "genre",
