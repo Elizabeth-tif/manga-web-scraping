@@ -140,7 +140,7 @@ function getRandomColor() {
 }
 
 function getType() {
-  fetch("../../../manga/hasil.json")
+  fetch("manga/hasil.json")
     .then((res) => {
       if (!res) {
         throw new Error(`HTTP error! Status: ${res.status}`);
@@ -192,7 +192,7 @@ function getType() {
 getType();
 
 function getGenre(){
-  fetch("../../../manga/hasil.json")
+  fetch("manga/hasil.json")
   .then((res)=>{
     if (!res){
       throw new Error
@@ -273,7 +273,7 @@ function filter() {
     $('#datatable').DataTable().destroy();
   }
   datatable = $('#datatable').DataTable({
-    ajax: { url: "../../../manga/hasil.json", dataSrc: "" },
+    ajax: { url: "manga/hasil.json", dataSrc: "" },
     scrollX: true,
     columnDefs: [
       {
